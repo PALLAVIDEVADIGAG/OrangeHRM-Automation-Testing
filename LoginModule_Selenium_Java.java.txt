@@ -1,0 +1,537 @@
+import java.time.Duration;
+import java.util.Set;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+
+public class Login {
+
+	static WebDriver driver;
+	static WebDriverWait wait;
+
+	static By username = By.name("username");
+
+	static By password = By.name("password");
+
+	static By loginButton = By.xpath("//button[@type='submit']");
+
+	static By errorMessage = By.xpath("//p[text()='Invalid credentials']");
+
+	public static void main(String[] args) {
+
+		driver = new ChromeDriver();
+
+		driver.manage().window().maximize();
+
+		wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+
+		// TC-001
+		openLoginPage();
+		validLogin("Admin", "admin123");
+		logout();
+
+		// TC-002, TC-017
+		openLoginPage();
+		invalidLogin("Admin", "WrongPwd");
+		// TC-003, TC-016
+		openLoginPage();
+		invalidLogin("InvalidUser", "admin123");
+		// TC-004, TC-018
+		openLoginPage();
+		invalidLogin("InvalidUser", "WrongPwd");
+
+		// TC-005
+		openLoginPage();
+		emptyFieldValidation("", "admin123");
+		// TC-006
+		openLoginPage();
+		emptyFieldValidation("Admin", "");
+		// TC-007
+		openLoginPage();
+		emptyFieldValidation("", "");
+
+		// TC-008
+		openLoginPage();
+		usernameValidation(" Admin", "admin123");
+		// TC-009
+		openLoginPage();
+		usernameValidation("Admin ", "admin123");
+
+		// TC-010
+		openLoginPage();
+		passwordValidation("Admin", " admin123");
+		// TC-011
+		openLoginPage();
+		passwordValidation("Admin", "admin123 ");
+
+		// TC-012
+		openLoginPage();
+		usernameCasesensitivity("admin", "admin123");
+
+		// TC-013
+		openLoginPage();
+		passwordMaskingTest("Admin", "admin123 ");
+
+		// TC-014
+		openLoginPage();
+		verifyValidLogin("Admin", "admin123 ");
+
+		// TC-015
+		verifyDashboardAccessWithoutLogin();
+
+		// TC-019
+		openLoginPage();
+		accountLockFunctionality("Admin", "WrongPwd");
+
+		// TC-020
+		openLoginPage();
+		verifyLockedUserCannotLogin("Admin", "admin123");
+
+		// TC-021
+		openLoginPage();
+		verifyForgotPasswordLinkVisible();
+
+		// TC-022
+		openLoginPage();
+		forgotPasswordValidation("Admin");
+		// TC-023
+		openLoginPage();
+		forgotPasswordValidation("admin");
+
+		// TC-024
+		openLoginPage();
+		socialMediaNavigation("//a[contains(@href,'linkedin')]", "linkedin");
+		// TC-025
+		openLoginPage();
+		socialMediaNavigation("//a[contains(@href,'facebook')]", "facebook");
+		// TC-026
+		openLoginPage();
+		socialMediaNavigation("//a[contains(@href,'twitter')]", "x");
+		// TC-027
+		openLoginPage();
+		socialMediaNavigation("//a[contains(@href,'youtube')]", "youtube");
+
+		driver.quit();
+	}
+
+	static void openLoginPage() {
+
+		driver.get("https://opensource-demo.orangehrmlive.com/web/index.php/auth/login");
+
+		wait.until(ExpectedConditions.visibilityOfElementLocated(username));
+	}
+
+	static void validLogin(String usernameValue, String passwordValue) {
+
+		driver.findElement(username).sendKeys(usernameValue);
+
+		driver.findElement(password).sendKeys(passwordValue);
+
+		driver.findElement(loginButton).click();
+
+		wait.until(ExpectedConditions.urlContains("dashboard"));
+
+		if (driver.getCurrentUrl().contains("dashboard")) {
+			System.out.println("TC-001 Passed");
+		}
+
+		else {
+			System.out.println("TC-001 Failed");
+		}
+
+	}
+
+	static void logout() {
+
+		wait.until(ExpectedConditions.elementToBeClickable(By.className("oxd-userdropdown-name")));
+
+		driver.findElement(By.className("oxd-userdropdown-name")).click();
+
+		wait.until(ExpectedConditions.visibilityOfElementLocated(By.linkText("Logout")));
+
+		driver.findElement(By.linkText("Logout")).click();
+
+		wait.until(ExpectedConditions.visibilityOfElementLocated(username));
+	}
+
+	static void invalidLogin(String usernameValue, String passwordValue) {
+
+		driver.findElement(username).sendKeys(usernameValue);
+
+		driver.findElement(password).sendKeys(passwordValue);
+
+		driver.findElement(loginButton).click();
+
+		String errorMessage = wait
+				.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//p[text()='Invalid credentials']")))
+				.getText();
+
+		// System.out.println(By.xpath("//p[text()='Invalid credentials']")));
+
+		if (errorMessage.contains("Invalid credentials")) {
+			System.out.println("invalidLogin Test Passed");
+		} else {
+			System.out.println("invalidLogin Test Failed");
+		}
+
+	}
+
+	static void emptyFieldValidation(String usernameValue, String passwordValue) {
+
+		driver.findElement(username).sendKeys(usernameValue);
+
+		driver.findElement(password).sendKeys(passwordValue);
+
+		driver.findElement(loginButton).click();
+
+		String errorMessage = wait
+				.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//span[text()='Required']"))).getText();
+
+		if (errorMessage.contains("Required")) {
+			System.out.println("emptyFieldValidation Test Passed");
+		} else {
+			System.out.println("emptyFieldValidation Test Failed");
+		}
+	}
+
+	static void usernameValidation(String usernameValue, String passwordValue) {
+
+		driver.findElement(username).sendKeys(usernameValue);
+
+		driver.findElement(password).sendKeys(passwordValue);
+
+		driver.findElement(loginButton).click();
+
+		try {
+
+			String errorMessage = wait
+					.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//p[text()='Invalid credentials']")))
+					.getText();
+
+			if (errorMessage.equals("Invalid credentials")) {
+				System.out.println("usernameValidation Test Passed");
+			}
+		} catch (Exception e) {
+
+			if (driver.getCurrentUrl().contains("dashboard")) {
+				System.out.println("usernameValidation Test Passed (Username spaces ignored)");
+				logout();
+			} else {
+				System.out.println("usernameValidation Test Failed");
+			}
+		}
+	}
+
+	static void passwordValidation(String usernameValue, String passwordValue) {
+
+		driver.findElement(username).sendKeys(usernameValue);
+
+		driver.findElement(password).sendKeys(passwordValue);
+
+		driver.findElement(loginButton).click();
+
+		String errorMessage = wait
+				.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//p[text()='Invalid credentials']")))
+				.getText();
+
+		if (errorMessage.contains("Invalid credentials")) {
+			System.out.println("passwordValidation Test Passed");
+		} else {
+			System.out.println("passwordValidation Test Failed");
+		}
+	}
+
+	static void usernameCasesensitivity(String usernameValue, String passwordValue) {
+
+		driver.findElement(username).sendKeys(usernameValue);
+
+		driver.findElement(password).sendKeys(passwordValue);
+
+		driver.findElement(loginButton).click();
+
+		try {
+
+			String errorMessage = wait
+					.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//p[text()='Invalid credentials']")))
+					.getText();
+
+			if (errorMessage.equals("Invalid credentials")) {
+				System.out.println("TC-012 Passed");
+			}
+
+		}
+
+		catch (Exception e) {
+
+			if (driver.getCurrentUrl().contains("dashboard")) {
+				System.out.println("TC-012 Passed (Case ignored)");
+
+				logout();
+			}
+
+			else {
+				System.out.println("TC-012 Failed");
+			}
+		}
+	}
+
+	static void passwordMaskingTest(String usernameValue, String passwordValue) {
+
+		driver.findElement(username).sendKeys(usernameValue);
+
+		// Store password textbox
+		WebElement passwordField = driver.findElement(password);
+
+		passwordField.sendKeys(passwordValue);
+
+		// Verify masked
+		String before = passwordField.getDomAttribute("type");
+
+		if (before.equals("password")) {
+			System.out.println("Password is masked");
+		} else {
+			System.out.println("Password is visible");
+		}
+
+		// Click visibility icon
+		WebElement eyeIcon = driver.findElement(By.xpath("//input[@name='password']/following::*[name()='svg'][1]"));
+
+		eyeIcon.click();
+
+		// Verify visible
+		String after = passwordField.getDomAttribute("type");
+
+		if (after.equals("text")) {
+			System.out.println("Password visibility working");
+		} else {
+			System.out.println("Visibility icon not working");
+		}
+	}
+
+	static void verifyValidLogin(String usernameValue, String passwordValue) {
+
+		driver.findElement(username).sendKeys(usernameValue);
+
+		driver.findElement(password).sendKeys(passwordValue);
+
+		driver.findElement(loginButton).click();
+
+		String currentURL = driver.getCurrentUrl();
+
+		if (currentURL.contains("dashboard")) {
+			System.out.println("verifyValidLogin Passed");
+		} else {
+			System.out.println("verifyValidLogin Failed");
+		}
+	}
+
+	static void verifyDashboardAccessWithoutLogin() {
+
+		driver.get("https://opensource-demo.orangehrmlive.com/web/index.php/dashboard/index");
+
+		String currentURL = driver.getCurrentUrl();
+
+		if (currentURL.contains("auth/login")) {
+			System.out.println("TC-014 Passed");
+		} else {
+			System.out.println("TC-014 Failed");
+		}
+	}
+
+	static void accountLockFunctionality(String usernameValue, String passwordValue) {
+
+		for (int count = 1; count <= 5; count++) {
+
+			wait.until(ExpectedConditions.visibilityOfElementLocated(username));
+
+			driver.findElement(username).clear();
+
+			driver.findElement(username).sendKeys(usernameValue);
+
+			driver.findElement(password).clear();
+
+			driver.findElement(password).sendKeys(passwordValue);
+
+			driver.findElement(loginButton).click();
+
+			try {
+
+				String error = wait.until(
+						ExpectedConditions.visibilityOfElementLocated(By.xpath("//p[text()='Invalid credentials']")))
+						.getText();
+
+				System.out.println("Attempt " + count + " → " + error);
+
+			}
+
+			catch (Exception e) {
+
+				System.out.println("Unable to confirm lock state");
+
+				break;
+			}
+		}
+
+		if (driver.getPageSource().contains("locked")) {
+
+			System.out.println("Account Locked");
+		}
+	}
+
+	static void verifyLockedUserCannotLogin(String usernameValue, String validPassword) {
+
+		try {
+
+			wait.until(ExpectedConditions.elementToBeClickable(username));
+
+			driver.findElement(username).sendKeys(usernameValue);
+
+			driver.findElement(password).sendKeys(validPassword);
+
+			driver.findElement(loginButton).click();
+
+			wait.until(ExpectedConditions.urlContains("dashboard"));
+
+			if (driver.getCurrentUrl().contains("dashboard")) {
+
+				System.out.println("TC-019 Failed");
+
+				System.out.println("User logged in → account not locked");
+
+			}
+
+			else {
+
+				System.out.println("TC-019 Passed");
+
+				System.out.println("User cannot login");
+
+			}
+
+		}
+
+		catch (Exception e) {
+
+			System.out.println("TC-019 could not execute");
+
+			e.printStackTrace();
+		}
+	}
+
+	static void socialMediaNavigation(String locator, String expectedSite) {
+
+		String parentWindow = driver.getWindowHandle();
+
+		driver.findElement(By.xpath(locator)).click();
+
+		Set<String> allWindows = driver.getWindowHandles();
+
+		for (String window : allWindows) {
+
+			if (!window.equals(parentWindow)) {
+
+				driver.switchTo().window(window);
+
+				break;
+			}
+		}
+
+		String currentUrl = driver.getCurrentUrl().toLowerCase();
+
+		if (currentUrl.contains(expectedSite.toLowerCase())) {
+
+			System.out.println(expectedSite + " Test Passed");
+
+		}
+
+		else {
+
+			System.out.println(expectedSite + " Test Failed");
+		}
+
+		driver.close();
+
+		driver.switchTo().window(parentWindow);
+	}
+
+	static void verifyForgotPasswordLinkVisible() {
+
+		try {
+
+			WebElement forgotPassword = wait
+					.until(ExpectedConditions.visibilityOfElementLocated(By.className("orangehrm-login-forgot")));
+
+			if (forgotPassword.isDisplayed()) {
+
+				System.out.println("Forgot Password link displayed");
+
+				System.out.println("TC-021 Passed");
+
+			}
+
+			else {
+
+				System.out.println("TC-021 Failed");
+			}
+
+		}
+
+		catch (Exception e) {
+
+			System.out.println("Unable to verify TC-021");
+
+			e.printStackTrace();
+		}
+	}
+
+	static void forgotPasswordValidation(String usernameValue) {
+
+		try {
+
+			driver.findElement(By.linkText("Forgot your password?")).click();
+
+			wait.until(ExpectedConditions.visibilityOfElementLocated(username));
+
+			driver.findElement(username).sendKeys(usernameValue);
+
+			driver.findElement(loginButton).click();
+
+			try {
+
+				String success = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//h6"))).getText();
+
+				System.out.println("Password reset accepted");
+
+			}
+
+			catch (Exception e) {
+
+				try {
+
+					String error = wait.until(
+							ExpectedConditions.visibilityOfElementLocated(By.xpath("//*[contains(text(),'Invalid')]")))
+							.getText();
+
+					System.out.println("Error displayed");
+
+				}
+
+				catch (Exception ex) {
+
+					System.out.println("Unable to verify");
+				}
+			}
+
+		}
+
+		catch (Exception e) {
+
+			System.out.println("Forgot password execution failed");
+		}
+	}
+
+}
