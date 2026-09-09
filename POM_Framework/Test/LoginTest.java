@@ -1,109 +1,123 @@
 package Test;
-import org.openqa.selenium.WebDriver;
+
 import org.testng.Assert;
-import org.testng.annotations.*;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
+import Base.BaseTest;
 import Pages.LoginPage;
-import Utilities.DriverFactory;
 
-public class LoginTest {
+public class LoginTest extends BaseTest {
 
-	WebDriver driver;
 	LoginPage login;
-	
+
 	private static final String USERNAME = "Admin";
 	private static final String PASSWORD = "admin123";
 
+	// =========================================================
+	// Setup
+	// =========================================================
+
 	@BeforeMethod
-	public void setup() {
+	public void initializePage() {
 
-		driver = DriverFactory.setup();
+		System.out.println("===== LoginTest.initializePage() =====");
 
-		driver.get("https://opensource-demo.orangehrmlive.com/web/index.php/auth/login");
-		
 		login = new LoginPage(driver);
-
 	}
 
+	// =========================================================
 	// TC-001 - Verify login with valid credentials
-	@Test (description = "Verify login with valid credentials")
-	public void testvalidLogin() {
+	// =========================================================
 
-		
+	@Test(description = "Verify login with valid credentials")
+	public void testValidLogin() {
 
-		login.validLogin(USERNAME, PASSWORD);
+		login.login(USERNAME, PASSWORD);
 
-		Assert.assertTrue(driver.getCurrentUrl().contains("dashboard"));
-
+		Assert.assertTrue(login.getCurrentUrl().contains("dashboard"), "User was not redirected to Dashboard.");
 	}
-	
-	@Test
-	public void testlogout() {
-	    
 
-	    login.validLogin(USERNAME, PASSWORD);
-	    login.logout();
-	    
-	    Assert.assertTrue(login.getCurrenturl().contains("login"));
+	// =========================================================
+	// TC-002 - Verify login with invalid credentials
+	// =========================================================
+
+	@Test(dataProvider = "invalidLoginData", description = "Verify login with invalid credentials")
+	public void testInvalidLogin(String user, String pwd) {
+
+		login.login(user, pwd);
+
+		String error = login.getErrorMsg();
+
+		Assert.assertEquals(error, "Invalid credentials", "Invalid credentials error message was not displayed.");
 	}
-	
-	// TC-002, TC-017
-	@Test(dataProvider = "invalidLoginData")
-	public void testinvalidLogin(String user, String pwd) {
-		
-		login.invalidLogin(user, pwd);
-		String error = login.getErrormsg();
-		Assert.assertEquals(error, "Invalid credentials");
+
+	// =========================================================
+	// TC-003 - Verify empty field validation
+	// =========================================================
+
+	@Test(description = "Verify validation message for empty username and password")
+	public void testEmptyFieldValidation() {
+
+		login.login("", "");
+
+		String message = login.getRequiredMessage();
+
+		Assert.assertEquals(message, "Required", "Required validation message was not displayed.");
 	}
-	
 
-	
-	@Test
-	public void testemptyFieldValidation() {
+	// =========================================================
+	// TC-004 - Verify username with spaces
+	// =========================================================
 
-	   
+	@Test(description = "Verify login with username containing spaces")
+	public void testUsernameWithSpaces() {
 
-	    String message = login.emptyFieldValidation("", "");
+		login.login(" Admin ", PASSWORD);
 
-	    Assert.assertEquals(message, "Required");
+		Assert.assertEquals(login.getErrorMsg(), "Invalid credentials",
+				"Expected Invalid credentials message was not displayed.");
 	}
-	
-	
-	@Test
-	public void testusernameWithSpacesTest() {
 
-	   
+	// =========================================================
+	// TC-005 - Verify username case sensitivity
+	// =========================================================
 
-	    login.invalidLogin(" Admin ", "admin123");
+	@Test(description = "Verify username case sensitivity")
+	public void testUsernameCaseSensitivity() {
 
-	    Assert.assertEquals(login.getErrormsg(), "Invalid credentials");
+		login.login("admin", PASSWORD);
+
+		Assert.assertTrue(login.getCurrentUrl().contains("dashboard"), "User was not redirected to Dashboard.");
 	}
-	
-	@Test
-	public void testUsernameCaseInsensitivity() {
 
-	    login.validLogin("admin", "admin123");
+	// =========================================================
+	// TC-006 - Verify logout
+	// =========================================================
 
-	    Assert.assertTrue(login.getCurrenturl().contains("dashboard"));
+	@Test(description = "Verify user can logout successfully")
+	public void testLogout() {
+
+		login.login(USERNAME, PASSWORD);
+
+		login.logout();
+
+		Assert.assertTrue(login.getCurrentUrl().contains("login"),
+				"User was not redirected to Login page after logout.");
 	}
-	
+
+	// =========================================================
+	// Data Provider - Invalid Login
+	// =========================================================
+
 	@DataProvider(name = "invalidLoginData")
-    public Object[][] invalidData() {
+	public Object[][] invalidData() {
 
-        return new Object[][] {
+		return new Object[][] {
 
-            {"Admin", "wrongpwd"},
-            {"wronguser", "admin123"},
-            {"abc", "xyz"},
+				{ "Admin", "wrongpwd" }, { "wronguser", "admin123" }, { "abc", "xyz" }
 
-        };
-    }
-
-	@AfterMethod
-	public void tearDown() {
-
-		DriverFactory.close();
-
+		};
 	}
-
 }
