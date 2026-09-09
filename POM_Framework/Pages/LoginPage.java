@@ -1,54 +1,88 @@
 package Pages;
 
-
-
-import java.time.Duration;
-
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.WebDriverWait;
 
-public class LoginPage {
+import Base.BasePage;
 
-	WebDriver driver;
-	WebDriverWait wait;
-	
+public class LoginPage extends BasePage {
 
-	By username = By.name("username");
-	By password = By.name("password");
-	By loginButton = By.xpath("//button[@type='submit']");
-	
-	By userDropDown = By.className("oxd-userdropdown-name");
-	By logout = By.linkText("Logout");
+	// =========================================================
+	// Locators
+	// =========================================================
 
-	By errorMessage = By.xpath("//p[text()='Invalid credentials']");
-	By errorMessage2 = By.xpath("//span[text()='Required']");
+	// Login fields
+	private final By username = By.name("username");
+
+	private final By password = By.name("password");
+
+	private final By loginButton = By.xpath("//button[@type='submit']");
+
+	// Login validation messages
+	private final By errorMessage = By.xpath("//p[text()='Invalid credentials']");
+
+	private final By requiredMessage = By.xpath("//span[text()='Required']");
+
+	// User menu and Logout
+	private final By userDropDown = By.className("oxd-userdropdown-name");
+
+	private final By logout = By.linkText("Logout");
+
+	// =========================================================
+	// Constructor
+	// =========================================================
 
 	public LoginPage(WebDriver driver) {
-		this.driver = driver;
-		wait = new WebDriverWait(driver, Duration.ofSeconds(5));
+
+		super(driver);
 	}
 
-	private void login(String user, String pwd) {
+	// =========================================================
+	// Login
+	// =========================================================
 
-        wait.until(ExpectedConditions.visibilityOfElementLocated(username));
+	public void login(String user, String pwd) {
 
-        driver.findElement(username).clear();
-        driver.findElement(username).sendKeys(user);
+		System.out.println("Login page URL = " + driver.getCurrentUrl());
 
-        driver.findElement(password).clear();
-        driver.findElement(password).sendKeys(pwd);
+		wait.until(ExpectedConditions.visibilityOfElementLocated(username));
 
-        driver.findElement(loginButton).click();
-    }
-	
-	public void validLogin(String user, String pwd) {
-		
-		 login(user, pwd);
+		driver.findElement(username).clear();
+		driver.findElement(username).sendKeys(user);
 
-	        wait.until(ExpectedConditions.urlContains("dashboard"));
-	    }
+		driver.findElement(password).clear();
+		driver.findElement(password).sendKeys(pwd);
+
+		driver.findElement(loginButton).click();
+	}
+
+	// =========================================================
+	// Login Validation Messages
+	// =========================================================
+
+	public String getErrorMsg() {
+
+		return wait.until(ExpectedConditions.visibilityOfElementLocated(errorMessage)).getText();
+	}
+
+	public String getRequiredMessage() {
+
+		return wait.until(ExpectedConditions.visibilityOfElementLocated(requiredMessage)).getText();
+	}
+
+	// =========================================================
+	// URL
+	// =========================================================
+
+	public String getCurrentUrl() {
+
+		return driver.getCurrentUrl();
+	}
+
+	// =========================================================
+	// Logout
+	// =========================================================
 
 	public void logout() {
 
@@ -62,33 +96,4 @@ public class LoginPage {
 
 		wait.until(ExpectedConditions.visibilityOfElementLocated(username));
 	}
-
-	
-	public void invalidLogin(String user, String pwd) {
-
-        login(user, pwd);
-    }
-	
-	public String getErrormsg() {
-
-	    wait.until(ExpectedConditions.presenceOfElementLocated(errorMessage));
-
-	    return driver.findElement(errorMessage).getText();
-
-	}
-	
-	public String emptyFieldValidation(String user, String pwd) {
-
-		login(user, pwd);
-		
-		return wait.until(ExpectedConditions.visibilityOfElementLocated(errorMessage2)).getText();
-	
-	}
-	
-	public String getCurrenturl() {
-
-	    return driver.getCurrentUrl();
-	}
-	
-
 }
