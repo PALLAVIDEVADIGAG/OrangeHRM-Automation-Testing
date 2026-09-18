@@ -31,7 +31,7 @@ public class LoginTest extends BaseTest {
 	// TC-001 - Verify login with valid credentials
 	// =========================================================
 
-	@Test(description = "Verify login with valid credentials")
+	@Test(description = "Verify login with valid credentials", groups = "smoke")
 	public void testValidLogin() {
 
 		login.login(USERNAME, PASSWORD);
@@ -96,7 +96,7 @@ public class LoginTest extends BaseTest {
 	// TC-006 - Verify logout
 	// =========================================================
 
-	@Test(description = "Verify user can logout successfully")
+	@Test(description = "Verify user can logout successfully", groups = "smoke")
 	public void testLogout() {
 
 		login.login(USERNAME, PASSWORD);
