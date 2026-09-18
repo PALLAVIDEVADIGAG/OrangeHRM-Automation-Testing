@@ -1,77 +1,90 @@
 package Test;
 
-import org.openqa.selenium.WebDriver;
 import org.testng.Assert;
-import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import Pages.AdminPage;
 import Pages.LoginPage;
-import Utilities.DriverFactory;
+import Pages.PIMPage;
+import Base.BaseTest;
 
-public class AdminTest {
+public class AdminTest extends BaseTest {
 
-	WebDriver driver;
 	LoginPage login;
 	AdminPage admin;
+	PIMPage pim;
 
 	private static final String USERNAME = "Admin";
 	private static final String PASSWORD = "admin123";
 
+	String empUserName = "avwergefwergwe24235";
+	String emppassword = "sfgrdfrt@4354647";
+	String confirmPassword = "sfgrdfrt@4354647";
+	String employeeName = "bala kumar ravi";
+
 	@BeforeMethod
-	public void setup() {
-
-		driver = DriverFactory.setup();
-
-		driver.get("https://opensource-demo.orangehrmlive.com/web/index.php/auth/login");
+	public void initializePage() {
 
 		login = new LoginPage(driver);
+		pim = new PIMPage(driver);
 		admin = new AdminPage(driver);
 
-		login.validLogin(USERNAME, PASSWORD);
+		login.login(USERNAME, PASSWORD);
 	}
 
-	@AfterMethod
-	public void tearDown() {
+	// =========================================================
+	// TC-001 - Verify Admin menu is displayed
+	// =========================================================
 
-		DriverFactory.close();
-	}
-	/*
-	 * @Test public void verifyAdminMenuisDisplayed() {
-	 * 
-	 * Assert.assertTrue(admin.isDisplayAdminMenu(), "Admin Menu is not displayed");
-	 * 
-	 * }
-	 * 
-	 * @Test public void verifyOpenAdminMenu() { admin.openAdminMenu();
-	 * 
-	 * 
-	 * Assert.assertTrue(admin.getUrl().contains("/admin/viewSystemUsers"),
-	 * "Admin page is not opened."); }
-	 * 
-	 * @Test public void verifyUserManagementDisplayed() { admin.openAdminMenu();
-	 * Assert.assertTrue(admin.isUserManagementDisplayed(),
-	 * "user managemnet is not dispalyed"); }
-	 */
+	@Test(description = "Verify Admin menu is displayed after login", groups = "smoke", enabled = false)
+	public void verifyAdminMenuisDisplayed() {
 
-	@Test
-	public void verifyDisplayAddButton() {
-		admin.openAdminMenu();
-		Assert.assertTrue(admin.isDisplayAddButton(), "add button is not dispalyed");
+		Assert.assertTrue(admin.isDisplayAdminMenu(), "Admin Menu is not displayed");
 	}
 
-	@Test
-	public void verifyOpenAddUserpage() {
-		admin.openAdminMenu();
-		admin.openAddUserpage();
+	// =========================================================
+	// TC-002 - Verify navigation to Admin
+	// =========================================================
 
-		Assert.assertTrue(admin.getUrl().contains("/admin/saveSystemUser"), "Add User page is not opened.");
+	@Test(description = "Verify user can navigate to Admin page", groups = "smoke", enabled = false)
+	public void verifyClickAdmin() {
+		admin.clickAdmin();
+
+		Assert.assertTrue(admin.getUrl().contains("/admin/viewSystemUsers"), "Admin page is not opened.");
 	}
 
-	@Test
+	// =========================================================
+	// TC-003 - Verify admin Table
+	// =========================================================
+
+	@Test(description = "Verify Admin table is displayed", groups = "smoke", enabled = false)
+	public void verifyAdminTableDisplayed() {
+
+		admin.clickAdmin();
+
+		Assert.assertTrue(admin.isDisplayAdminTable(), "Admin table is not displayed.");
+	}
+
+	// =========================================================
+	// TC-004 - Verify admin List
+	// =========================================================
+
+	@Test(description = "Verify admin List is displayed", groups = "smoke", enabled = false)
+	public void verifyAdminListDisplayed() {
+
+		admin.clickAdmin();
+
+		Assert.assertTrue(admin.isDisplayedAdminList(), "Admin List is not displayed.");
+	}
+
+	// =========================================================
+	// TC-005 - Verify add user fields
+	// =========================================================
+
+	@Test(description = "Verify add user fields", groups = "smoke", enabled = false)
 	public void verifyAddUserFields() {
-		admin.openAdminMenu();
+		admin.clickAdmin();
 		admin.openAddUserpage();
 
 		Assert.assertTrue(admin.isUserRoleDisplayed(), "user role field is not dispalyed");
@@ -82,5 +95,42 @@ public class AdminTest {
 		Assert.assertTrue(admin.isDisplayConfirmPassword(), "confirm password field is not dispalyed");
 		Assert.assertTrue(admin.isDisplayCancelButton(), "cancel button is not dispalyed");
 		Assert.assertTrue(admin.isSaveButtonDisplayed(), "save button is not dispalyed");
+	}
+
+	// =========================================================
+	// TC-006 - Verify add new user
+	// =========================================================
+
+	@Test(description = "Verify user can add new admin details Admin page", enabled = false)
+	public void verifyUserCreation() {
+
+		System.out.println("Returned Employee Name = " + employeeName);
+		admin.clickAdmin();
+		admin.openAddUserpage();
+		admin.clickUserRoleDropDown();
+		admin.selectAdmin();
+		admin.enterEmployeeName(employeeName);
+		admin.selectEmployeeSuggestion(employeeName);
+		admin.clickStatus();
+		admin.selectEnabled();
+
+		admin.enterUsernamePassword(empUserName, emppassword);
+
+		admin.confirmPassword(confirmPassword);
+		admin.clickSave();
+
+		Assert.assertTrue(admin.getUrl().contains("viewSystemUsers"), "User not added");
+	}
+
+	@Test(description = "Verify user can search added admin details", enabled = false)
+	public void searchAddedUser() {
+		admin.enterUsernamePassword(empUserName, emppassword);
+		admin.clickUserRoleDropDown();
+		admin.selectAdmin();
+		admin.enterEmployeeName(employeeName);
+		admin.selectEmployeeSuggestion(employeeName);
+		admin.clickStatus();
+		admin.selectEnabled();
+		admin.clickSearch();
 	}
 }
