@@ -8,23 +8,23 @@ import Utilities.DriverFactory;
 
 public class BaseTest {
 
-    protected WebDriver driver;
+	protected WebDriver driver;
 
-    @BeforeMethod
-    public void setup() {
-    	
-    	System.out.println("===== BaseTest.setup() =====");
+	@BeforeMethod
+	public void setup() {
 
-        driver = DriverFactory.setup();
+		System.out.println("===== BaseTest.setup() =====");
 
-        driver.get("https://opensource-demo.orangehrmlive.com/web/index.php/auth/login");
-        
-        System.out.println(driver.getCurrentUrl());
-    }
+		driver = DriverFactory.setup();
 
-    @AfterMethod
-    public void tearDown() {
+		driver.get("https://opensource-demo.orangehrmlive.com/web/index.php/auth/login");
 
-        DriverFactory.close();
-    }
+		System.out.println(driver.getCurrentUrl());
+	}
+
+	@AfterMethod
+	public void tearDown() {
+
+		DriverFactory.close();
+	}
 }
